@@ -3,8 +3,8 @@ AS = $(CROSS_PREFIX)-as
 CC = $(CROSS_PREFIX)-g++
 LD = $(CROSS_PREFIX)-g++
 
-GCC_ROOT ?= /nix/store/yanlwl2l0xvl299iv0zg37wsbz450snb-i686-elf-gcc-13.3.0
-NEWLIB   ?= /nix/store/85ldw7bzhivglbsb6v8wcngcgigqbk8m-newlib-i686-elf-4.3.0.20230120
+GCC_ROOT := $(shell echo $$GCC_ROOT)
+NEWLIB   := $(shell echo $$NEW_LIB)
 
 CFLAGS = \
   -ffreestanding -O2 -Wall -Wextra -fno-exceptions -fno-rtti \
@@ -23,34 +23,43 @@ SRC_DIR = src
 BUILD_DIR = build
 ISO_NAME = fabios
 ISO_DIR = isodir
-GRUB_CFG = grub.cfg
+GRUB_CFG = config/grub.cfg
 
-SOURCES = $(SRC_DIR)/boot.s $(SRC_DIR)/kernel.cpp
+SOURCES = \
+  $(SRC_DIR)/arch/boot.s \
+  $(SRC_DIR)/kernel.cpp \
+  $(SRC_DIR)/core/vga.cpp
 OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(filter %.cpp,$(SOURCES))) \
           $(patsubst $(SRC_DIR)/%.s,$(BUILD_DIR)/%.o,$(filter %.s,$(SOURCES)))
 
+# Rule for compiling C++ source files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp
-	mkdir -p $(BUILD_DIR)
+	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Rule for assembling .s files
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.s
-	mkdir -p $(BUILD_DIR)
+	mkdir -p $(dir $@)
 	$(AS) $< -o $@
 
+# Link everything into the kernel binary
 all: $(BUILD_DIR)/$(ISO_NAME).bin
 
 $(BUILD_DIR)/$(ISO_NAME).bin: $(OBJECTS) $(SRC_DIR)/linker.ld
 	$(LD) $(LDFLAGS) -o $@ $(OBJECTS)
 
+# Create the ISO image
 iso: all
 	mkdir -p $(ISO_DIR)/boot/grub
 	cp $(BUILD_DIR)/$(ISO_NAME).bin $(ISO_DIR)/boot/$(ISO_NAME).bin
 	cp $(GRUB_CFG) $(ISO_DIR)/boot/grub/grub.cfg
 	grub-mkrescue -o $(BUILD_DIR)/$(ISO_NAME).iso $(ISO_DIR)
 
+# Run the ISO in QEMU
 run: iso
 	qemu-system-i386 -cdrom $(BUILD_DIR)/$(ISO_NAME).iso
 
+# Clean everything
 clean:
 	rm -rf $(BUILD_DIR) $(ISO_DIR)
 
