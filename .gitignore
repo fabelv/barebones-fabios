@@ -1,0 +1,23 @@
+# Build artifacts
+/build/
+/isodir/
+
+# Editor and LSP cache
+.cache/
+.clangd
+
+# Compiled binaries
+*.o
+*.bin
+*.iso
+
+# Backup or temp files
+*~
+*.swp
+*.swo
+
+# Logs and temp files
+*.log
+
+# Nix garbage (optional)
+.result/
