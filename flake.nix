@@ -21,10 +21,12 @@
             pkgs.pkgsCross.i686-embedded.buildPackages.gcc
             pkgs.pkgsCross.i686-embedded.buildPackages.gcc.cc
             pkgs.pkgsCross.i686-embedded.newlib
+            pkgs.gtest.dev
 
             # utility
             pkgs.libisoburn # for creating iso images
             pkgs.qemu # for emulating and virtualizing
+            pkgs.cmake
 
             # only used for lsp purposes not compiling
             pkgs.bear

@@ -1,5 +1,5 @@
 
-#include "./kernel_string.h"
+#include "kernel_string.h"
 
 namespace lib {
 

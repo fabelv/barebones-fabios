@@ -23,6 +23,9 @@ enum class Color : uint8_t {
 };
 
 void initialize();
+void scroll_one_row();
 void write_string(const char *str);
+void write_string_nl(const char *str);
+void set_color(Color fg, Color bg);
 void put_char(char c);
 } // namespace vga
