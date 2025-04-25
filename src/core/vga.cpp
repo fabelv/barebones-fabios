@@ -30,7 +30,7 @@ size_t col = 0;
 uint8_t color =
     (uint8_t)vga::Color::LightGrey | ((uint8_t)vga::Color::Black << 4);
 
-// cast VGA memory address to pointer
+// cast VGA memory address pointer
 uint16_t *buffer = reinterpret_cast<uint16_t *>(VGA_MEMORY);
 
 // vga entry 16 bit where the first 8 bit represent the color and the last 8 bit
@@ -39,9 +39,6 @@ uint16_t vga_entry(char c, uint8_t color) {
   return (uint16_t)c | (uint16_t)color << 8;
 }
 } // namespace
-
-extern "C" uint8_t __bss_start;
-extern "C" uint8_t __bss_end;
 
 // fill the screen with spaces to draw the background
 void vga::initialize() {

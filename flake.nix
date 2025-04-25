@@ -22,6 +22,7 @@
             pkgs.pkgsCross.i686-embedded.buildPackages.gcc.cc
             pkgs.pkgsCross.i686-embedded.newlib
             pkgs.gtest.dev
+            pkgs.nasm
 
             # utility
             pkgs.libisoburn # for creating iso images
