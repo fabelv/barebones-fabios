@@ -1,89 +1,61 @@
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
-struct multiboot_info_t {
-  uint32_t flags;
-
-  // flags[0] - basic memory info
-  uint32_t mem_lower;
-  uint32_t mem_upper;
-
-  // flags[1] - boot device
-  uint32_t boot_device;
-
-  // flags[2] - kernel command line
-  uint32_t cmdline;
-
-  // flags[3] - modules
-  uint32_t mods_count;
-  uint32_t mods_addr;
-
-  // flags[4] or flags[5] - symbol table
-  union {
-    struct {
-      uint32_t tabsize;
-      uint32_t strsize;
-      uint32_t addr;
-      uint32_t reserved;
-    } aout_syms;
-
-    struct {
-      uint32_t num;
-      uint32_t size;
-      uint32_t addr;
-      uint32_t shndx;
-    } elf_syms;
-  } syms;
-
-  // flags[6] - memory map
-  uint32_t mmap_length;
-  uint32_t mmap_addr;
-
-  // flags[7] - drives
-  uint32_t drives_length;
-  uint32_t drives_addr;
-
-  // flags[8] - ROM configuration table
-  uint32_t config_table;
-
-  // flags[9] - boot loader name
-  uint32_t boot_loader_name;
-
-  // flags[10] - APM table
-  uint32_t apm_table;
-
-  // flags[11] - VBE info
-  uint32_t vbe_control_info;
-  uint32_t vbe_mode_info;
-  uint16_t vbe_mode;
-  uint16_t vbe_interface_seg;
-  uint16_t vbe_interface_off;
-  uint16_t vbe_interface_len;
-
-  // flags[12] - framebuffer info
-  uint64_t framebuffer_addr;
-  uint32_t framebuffer_pitch;
-  uint32_t framebuffer_width;
-  uint32_t framebuffer_height;
-  uint8_t framebuffer_bpp;
-  uint8_t framebuffer_type;
-  uint8_t color_info[6]; // Enough to hold any color data
-} __attribute__((packed));
-
-struct multiboot_mmap_entry_t {
+// Multiboot memory map entry
+struct MultibootMMapEntry {
   uint32_t size;
   uint64_t addr;
   uint64_t len;
   uint32_t type;
 } __attribute__((packed));
 
-enum MemoryType {
-  AVAILABLE = 1,
-  RESERVED = 2,
-  ACPI_RECLAIMABLE = 3,
+// Multiboot information structure
+struct MultibootInfo {
+  uint32_t flags;
+  uint32_t mem_lower;
+  uint32_t mem_upper;
+  uint32_t boot_device;
+  uint32_t cmdline;
+  uint32_t mods_count;
+  uint32_t mods_addr;
+  union {
+    struct {
+      uint32_t tabsize, strsize, addr, reserved;
+    } aout_syms;
+    struct {
+      uint32_t num, size, addr, shndx;
+    } elf_syms;
+  } syms;
+  uint32_t mmap_length;
+  uint32_t mmap_addr;
+  uint32_t drives_length;
+  uint32_t drives_addr;
+  uint32_t config_table;
+  uint32_t boot_loader_name;
+  uint32_t apm_table;
+  uint32_t vbe_control_info;
+  uint32_t vbe_mode_info;
+  uint16_t vbe_mode;
+  uint16_t vbe_interface_seg;
+  uint16_t vbe_interface_off;
+  uint16_t vbe_interface_len;
+  uint64_t framebuffer_addr;
+  uint32_t framebuffer_pitch;
+  uint32_t framebuffer_width;
+  uint32_t framebuffer_height;
+  uint8_t framebuffer_bpp;
+  uint8_t framebuffer_type;
+  uint8_t color_info[6];
+} __attribute__((packed));
+
+// Memory types from multiboot spec
+enum class MemoryType {
+  Available = 1,
+  Reserved = 2,
+  ACPIReclaimable = 3,
   NVS = 4,
-  BADRAM = 5
+  BadRAM = 5,
 };
 
 // https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Specification

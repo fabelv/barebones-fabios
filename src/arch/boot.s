@@ -49,6 +49,10 @@ stack_top:                          # Label top of the stack
 
 _start:
     mov $stack_top, %esp            # Initialize stack pointer
+
+    push %ebx
+    push %eax
+
     call kernel_main                # Jump into C++ kernel code
 
     cli                             # Disable interrupts

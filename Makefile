@@ -1,61 +1,47 @@
+# === Paths ===
 CMAKE_BUILD_DIR := build/kernel
 OUT_DIR := build/output
 LINKER := src/linker.ld
 BOOT := src/arch/boot.s
 
-# Output binaries
-KERNEL_BIN := $(OUT_DIR)/kernel.elf
-KERNEL_TEST_BIN := $(OUT_DIR)/kernel_test.elf
+# === Output Files ===
+KERNEL_ELF := $(OUT_DIR)/kernel.elf
 ISO := $(OUT_DIR)/fabios.iso
-ISO_TEST := $(OUT_DIR)/fabios-test.iso
 
-.PHONY: all iso run test kernel_test.iso run_tests clean
+# === Targets ===
+.PHONY: all run clean
 
-all:
-	cmake -B $(CMAKE_BUILD_DIR) -S .
-	cmake --build $(CMAKE_BUILD_DIR) --target kernel_objs
-	$(MAKE) $(KERNEL_BIN)
+all: $(KERNEL_ELF)
 
-$(KERNEL_BIN): $(BOOT)
-	mkdir -p $(OUT_DIR)
-	i686-elf-gcc -c $(BOOT) -o $(OUT_DIR)/boot.o -ffreestanding
-	i686-elf-gcc -T $(LINKER) -o $@ -ffreestanding -O2 -nostdlib \
-	  $(OUT_DIR)/boot.o $(shell find $(CMAKE_BUILD_DIR) -name '*.o' -and -path '*kernel_objs*') -lgcc
-
-iso: $(KERNEL_BIN)
-	mkdir -p $(OUT_DIR)/isodir/boot/grub
-	cp $(KERNEL_BIN) $(OUT_DIR)/isodir/boot/fabios.bin
-	cp config/grub.cfg $(OUT_DIR)/isodir/boot/grub/grub.cfg
-	grub-mkrescue -o $(ISO) $(OUT_DIR)/isodir
-
-run: iso
+run: $(ISO)
 	qemu-system-i386 -cdrom $(ISO)
 
-test:
-	cmake -B build/test -S .
-	cmake --build build/test --target unit_tests
-	./build/test/unit_tests
-
-kernel_test:
-	cmake -B $(CMAKE_BUILD_DIR) -S .
-	cmake --build $(CMAKE_BUILD_DIR) --target kernel_test_objs
-	$(MAKE) $(KERNEL_TEST_BIN)
-
-$(KERNEL_TEST_BIN): $(BOOT)
-	mkdir -p $(OUT_DIR)
-	i686-elf-gcc -c $(BOOT) -o $(OUT_DIR)/boot.o -ffreestanding
-	i686-elf-gcc -T $(LINKER) -o $@ -ffreestanding -O2 -nostdlib \
-	  $(OUT_DIR)/boot.o $(shell find $(CMAKE_BUILD_DIR) -name '*.o' -and -path '*kernel_test_objs*') -lgcc
-
-kernel_test.iso: kernel_test
-	mkdir -p $(OUT_DIR)/isodir/boot/grub
-	cp $(KERNEL_TEST_BIN) $(OUT_DIR)/isodir/boot/fabios.bin
-	cp config/grub.cfg $(OUT_DIR)/isodir/boot/grub/grub.cfg
-	grub-mkrescue -o $(ISO_TEST) $(OUT_DIR)/isodir
-
-run_tests: kernel_test.iso
-	qemu-system-i386 -cdrom $(ISO_TEST)
-
 clean:
+	@echo "[+] Cleaning..."
 	rm -rf build
+
+# === Build Kernel ===
+$(KERNEL_ELF): build_kernel_objs $(OUT_DIR)/boot.o
+	@echo "[+] Linking kernel.elf..."
+	i686-elf-gcc -T $(LINKER) -o $@ -ffreestanding -O2 -nostdlib \
+	  $(OUT_DIR)/boot.o $(shell find $(CMAKE_BUILD_DIR)/CMakeFiles/kernel_objs.dir -name '*.o') -lgcc
+
+build_kernel_objs:
+	@echo "[+] Building kernel objects..."
+	cmake -B $(CMAKE_BUILD_DIR) -S .
+	cmake --build $(CMAKE_BUILD_DIR) --target kernel_objs
+
+# === Assemble Boot ===
+$(OUT_DIR)/boot.o: $(BOOT)
+	@echo "[+] Assembling boot.s..."
+	mkdir -p $(OUT_DIR)
+	i686-elf-gcc -c $< -o $@ -ffreestanding
+
+# === Create ISO ===
+$(ISO): $(KERNEL_ELF)
+	@echo "[+] Creating ISO..."
+	mkdir -p $(OUT_DIR)/isodir/boot/grub
+	cp $(KERNEL_ELF) $(OUT_DIR)/isodir/boot/fabios.bin
+	cp config/grub.cfg $(OUT_DIR)/isodir/boot/grub/grub.cfg
+	grub-mkrescue -o $@ $(OUT_DIR)/isodir
 
